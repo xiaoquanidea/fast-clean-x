@@ -195,4 +195,3 @@ func (m *Manager) GetEnabledRules() []models.ScanRule {
 
 	return rules
 }
-

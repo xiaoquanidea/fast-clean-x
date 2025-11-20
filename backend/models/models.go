@@ -50,13 +50,13 @@ type ScanProgress struct {
 
 // CleanProgress 清理进度
 type CleanProgress struct {
-	CurrentPath   string `json:"currentPath"`   // 当前清理路径
-	CleanedCount  int    `json:"cleanedCount"`  // 已清理数量
-	TotalCount    int    `json:"totalCount"`    // 总数量
-	CleanedSize   int64  `json:"cleanedSize"`   // 已清理大小
-	IsCleaning    bool   `json:"isCleaning"`    // 是否正在清理
-	Progress      int    `json:"progress"`      // 进度百分比 (0-100)
-	FailedItems   []string `json:"failedItems"` // 清理失败的项目
+	CurrentPath  string   `json:"currentPath"`  // 当前清理路径
+	CleanedCount int      `json:"cleanedCount"` // 已清理数量
+	TotalCount   int      `json:"totalCount"`   // 总数量
+	CleanedSize  int64    `json:"cleanedSize"`  // 已清理大小
+	IsCleaning   bool     `json:"isCleaning"`   // 是否正在清理
+	Progress     int      `json:"progress"`     // 进度百分比 (0-100)
+	FailedItems  []string `json:"failedItems"`  // 清理失败的项目
 }
 
 // DefaultScanRules 返回默认的扫描规则
@@ -83,7 +83,7 @@ func DefaultScanRules() []ScanRule {
 		{
 			Name:        "Node.js",
 			Description: "Node.js 依赖和构建目录",
-			TargetDirs:  []string{
+			TargetDirs: []string{
 				"node_modules",  // 依赖目录
 				"dist",          // 通用构建输出
 				"build",         // Create React App 等
@@ -98,7 +98,7 @@ func DefaultScanRules() []ScanRule {
 				"coverage",      // 测试覆盖率
 				".nyc_output",   // NYC 覆盖率
 			},
-			Enabled:     true,
+			Enabled: true,
 		},
 		{
 			Name:        "Python",
@@ -130,4 +130,3 @@ func DefaultConfig() *Config {
 		LastScanTime:   time.Time{},
 	}
 }
-

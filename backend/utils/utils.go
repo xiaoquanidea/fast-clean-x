@@ -37,12 +37,12 @@ func GetConfigDir() (string, error) {
 		return "", err
 	}
 	configDir := filepath.Join(home, ".fast-clean-x")
-	
+
 	// 确保目录存在
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return "", err
 	}
-	
+
 	return configDir, nil
 }
 
@@ -67,7 +67,7 @@ func ShouldSkipDir(path string) bool {
 	if IsHiddenFile(path) {
 		return true
 	}
-	
+
 	// 跳过系统目录
 	systemDirs := []string{
 		"System Volume Information",
@@ -80,14 +80,14 @@ func ShouldSkipDir(path string) bool {
 		"System",
 		"Applications",
 	}
-	
+
 	name := filepath.Base(path)
 	for _, sysDir := range systemDirs {
 		if strings.EqualFold(name, sysDir) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -182,21 +182,21 @@ func hasProjectMarker(dir string) bool {
 func CalculateDirSize(path string) (int64, int, error) {
 	var size int64
 	var count int
-	
+
 	err := filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			// 忽略权限错误等
 			return nil
 		}
-		
+
 		if !info.IsDir() {
 			size += info.Size()
 			count++
 		}
-		
+
 		return nil
 	})
-	
+
 	return size, count, err
 }
 
@@ -214,4 +214,3 @@ func IsDirectory(path string) bool {
 	}
 	return info.IsDir()
 }
-

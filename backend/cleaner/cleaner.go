@@ -104,4 +104,3 @@ func (c *Cleaner) Close() {
 	c.cancel()
 	close(c.progressChan)
 }
-

@@ -43,7 +43,7 @@ func (s *Scanner) Scan(paths []string) (*models.ScanResult, error) {
 
 	var wg sync.WaitGroup
 	itemsChan := make(chan models.ScanItem, 100)
-	
+
 	// 启动结果收集器
 	go func() {
 		for item := range itemsChan {
@@ -108,7 +108,7 @@ func (s *Scanner) scanPath(rootPath string, itemsChan chan<- models.ScanItem) {
 					item := s.createScanItem(path, rule.Name)
 					if item != nil {
 						itemsChan <- *item
-						
+
 						// 发送进度更新
 						s.sendProgress(path)
 					}
@@ -179,4 +179,3 @@ func (s *Scanner) Close() {
 	s.cancel()
 	close(s.progressChan)
 }
-
