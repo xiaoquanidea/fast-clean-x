@@ -2,7 +2,7 @@
 
 快速清理项目构建文件的桌面应用，帮助开发者释放磁盘空间。
 
-[![Release](https://img.shields.io/github/v/release/hutiquan/fast-clean-x)](https://github.com/hutiquan/fast-clean-x/releases)
+[![Release](https://img.shields.io/github/v/release/xiaoquanidea/fast-clean-x)](https://github.com/xiaoquanidea/fast-clean-x/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](#-快速开始)
 [![Go](https://img.shields.io/badge/Go-1.23-00ADD8.svg)](https://go.dev/)
@@ -74,7 +74,7 @@
 
 ### 📥 下载使用
 
-**[👉 前往 Releases 页面下载最新版本](https://github.com/hutiquan/fast-clean-x/releases/latest)**
+**[👉 前往 Releases 页面下载最新版本](https://github.com/xiaoquanidea/fast-clean-x/releases/latest)**
 
 #### macOS
 
