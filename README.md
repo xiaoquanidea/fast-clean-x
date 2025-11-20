@@ -7,7 +7,7 @@
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](#-快速开始)
 [![Go](https://img.shields.io/badge/Go-1.23-00ADD8.svg)](https://go.dev/)
 [![Vue](https://img.shields.io/badge/Vue-3-4FC08D.svg)](https://vuejs.org/)
-[![Build](https://github.com/hutiquan/fast-clean-x/actions/workflows/build.yml/badge.svg)](https://github.com/xiaoquanidea/fast-clean-x/actions)
+[![Build](https://github.com/xiaoquanidea/fast-clean-x/actions/workflows/build.yml/badge.svg)](https://github.com/xiaoquanidea/fast-clean-x/actions)
 
 ## 📸 应用截图
 
