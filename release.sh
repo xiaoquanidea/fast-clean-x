@@ -62,23 +62,56 @@ fi
 echo ""
 echo -e "${GREEN}步骤 1/5: 更新版本号...${NC}"
 
-# 更新 wails.json
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    sed -i '' "s/\"productVersion\": \".*\"/\"productVersion\": \"$NEW_VERSION\"/" wails.json
-else
-    # Linux
-    sed -i "s/\"productVersion\": \".*\"/\"productVersion\": \"$NEW_VERSION\"/" wails.json
-fi
+# 检查版本号是否相同
+if [ "$CURRENT_VERSION" = "$NEW_VERSION" ]; then
+    echo -e "${YELLOW}⚠️  版本号未变化（当前已是 v$NEW_VERSION）${NC}"
+    echo -e "${YELLOW}   是否仍要继续创建标签？(y/n)${NC}"
+    read -r -n 1 CONTINUE
+    echo ""
 
-echo -e "${GREEN}✅ 版本号已更新为: v$NEW_VERSION${NC}"
+    if [[ ! $CONTINUE =~ ^[Yy]$ ]]; then
+        echo -e "${YELLOW}已取消${NC}"
+        exit 0
+    fi
+
+    SKIP_COMMIT=true
+else
+    # 使用 Python/Perl 更新 JSON（更可靠）
+    if command -v python3 &> /dev/null; then
+        python3 -c "
+import json
+with open('wails.json', 'r') as f:
+    data = json.load(f)
+data['info']['productVersion'] = '$NEW_VERSION'
+with open('wails.json', 'w') as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write('\n')
+"
+    elif command -v perl &> /dev/null; then
+        perl -i -pe "s/(\"productVersion\":\s*\").*?(\")/$1$NEW_VERSION$2/" wails.json
+    else
+        # 回退到 sed
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s/\"productVersion\": \".*\"/\"productVersion\": \"$NEW_VERSION\"/" wails.json
+        else
+            sed -i "s/\"productVersion\": \".*\"/\"productVersion\": \"$NEW_VERSION\"/" wails.json
+        fi
+    fi
+
+    echo -e "${GREEN}✅ 版本号已更新为: v$NEW_VERSION${NC}"
+    SKIP_COMMIT=false
+fi
 echo ""
 
 # 提交更改
-echo -e "${GREEN}步骤 2/5: 提交更改...${NC}"
-git add wails.json
-git commit -m "chore: bump version to $NEW_VERSION"
-echo -e "${GREEN}✅ 更改已提交${NC}"
+if [ "$SKIP_COMMIT" = false ]; then
+    echo -e "${GREEN}步骤 2/5: 提交更改...${NC}"
+    git add wails.json
+    git commit -m "chore: bump version to $NEW_VERSION"
+    echo -e "${GREEN}✅ 更改已提交${NC}"
+else
+    echo -e "${YELLOW}步骤 2/5: 跳过提交（版本号未变化）${NC}"
+fi
 echo ""
 
 # 创建标签
@@ -89,7 +122,9 @@ echo ""
 
 # 推送到远程
 echo -e "${GREEN}步骤 4/5: 推送到 GitHub...${NC}"
-git push
+if [ "$SKIP_COMMIT" = false ]; then
+    git push
+fi
 git push origin "v$NEW_VERSION"
 echo -e "${GREEN}✅ 已推送到 GitHub${NC}"
 echo ""
