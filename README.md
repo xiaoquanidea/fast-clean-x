@@ -2,10 +2,12 @@
 
 快速清理项目构建文件的桌面应用，帮助开发者释放磁盘空间。
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)
-![Go](https://img.shields.io/badge/Go-1.23-00ADD8.svg)
-![Vue](https://img.shields.io/badge/Vue-3-4FC08D.svg)
+[![Release](https://img.shields.io/github/v/release/hutiquan/fast-clean-x)](https://github.com/hutiquan/fast-clean-x/releases)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](#-快速开始)
+[![Go](https://img.shields.io/badge/Go-1.23-00ADD8.svg)](https://go.dev/)
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D.svg)](https://vuejs.org/)
+[![Build](https://github.com/hutiquan/fast-clean-x/actions/workflows/build.yml/badge.svg)](https://github.com/hutiquan/fast-clean-x/actions)
 
 ## 📸 应用截图
 
@@ -70,13 +72,15 @@
 
 ## 🚀 快速开始
 
-### 下载使用
+### 📥 下载使用
+
+**[👉 前往 Releases 页面下载最新版本](https://github.com/hutiquan/fast-clean-x/releases/latest)**
 
 #### macOS
 
 1. 下载对应版本：
-   - **Apple Silicon (M1/M2/M3/M4)**: `Fast-Clean-X-arm64.app`
-   - **Intel Mac**: `Fast-Clean-X-amd64.app`
+   - **Apple Silicon (M1/M2/M3/M4)**: `Fast-Clean-X-macOS-arm64.zip`
+   - **Intel Mac**: `Fast-Clean-X-macOS-amd64.zip`
 
 2. 如遇到"无法打开"或"无法验证开发者"警告：
 
@@ -106,9 +110,9 @@
 
 #### Windows
 
-1. 下载 `Fast-Clean-X-amd64.exe`
+1. 下载 `Fast-Clean-X-Windows-amd64.zip`
 
-2. 双击运行即可
+2. 解压后双击 `Fast-Clean-X-amd64.exe` 运行
 
 3. 如遇到 Windows Defender 警告，点击"更多信息" → "仍要运行"
 

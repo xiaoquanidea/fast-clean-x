@@ -68,3 +68,9 @@ pnpm-debug.log*
 tmp/
 temp/
 *.tmp
+
+# Release artifacts
+*.zip
+*.dmg
+*.pkg
+artifacts/
