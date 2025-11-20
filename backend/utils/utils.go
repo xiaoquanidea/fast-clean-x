@@ -55,16 +55,12 @@ func GetConfigPath() (string, error) {
 	return filepath.Join(configDir, "config.json"), nil
 }
 
-// IsHiddenFile 判断是否为隐藏文件或目录
-func IsHiddenFile(path string) bool {
-	name := filepath.Base(path)
-	return strings.HasPrefix(name, ".")
-}
-
 // ShouldSkipDir 判断是否应该跳过该目录
 func ShouldSkipDir(path string) bool {
-	// 跳过隐藏目录
-	if IsHiddenFile(path) {
+	name := filepath.Base(path)
+
+	// 跳过 .git 目录（版本控制）
+	if name == ".git" || name == ".svn" || name == ".hg" {
 		return true
 	}
 
@@ -81,7 +77,6 @@ func ShouldSkipDir(path string) bool {
 		"Applications",
 	}
 
-	name := filepath.Base(path)
 	for _, sysDir := range systemDirs {
 		if strings.EqualFold(name, sysDir) {
 			return true
@@ -213,4 +208,38 @@ func IsDirectory(path string) bool {
 		return false
 	}
 	return info.IsDir()
+}
+
+// FindNearestMarker 从指定路径向上查找最近的项目标识文件
+// 返回找到的标识文件所在的目录路径，如果没找到返回空字符串
+func FindNearestMarker(startPath string, markers []string) string {
+	current := filepath.Dir(startPath)
+
+	// 向上查找，最多查找 10 层
+	for i := 0; i < 10; i++ {
+		parent := filepath.Dir(current)
+		if parent == current {
+			// 已到达根目录
+			break
+		}
+
+		// 检查当前目录是否有任一标识文件
+		for _, marker := range markers {
+			markerPath := filepath.Join(current, marker)
+			if _, err := os.Stat(markerPath); err == nil {
+				return current
+			}
+		}
+
+		current = parent
+	}
+
+	return ""
+}
+
+// Contains 检查路径中是否包含指定的子路径
+func Contains(path string, substr string) bool {
+	return strings.Contains(path, string(filepath.Separator)+substr+string(filepath.Separator)) ||
+		strings.HasPrefix(path, substr+string(filepath.Separator)) ||
+		strings.HasSuffix(path, string(filepath.Separator)+substr)
 }

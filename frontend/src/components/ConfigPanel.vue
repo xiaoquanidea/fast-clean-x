@@ -43,7 +43,6 @@ const handleRemovePath = async (path: string) => {
 }
 
 const handleRuleChange = async (ruleName: string, enabled: boolean) => {
-  console.log('切换规则:', ruleName, enabled)
   try {
     if (!UpdateScanRule) {
       ElMessage.error('功能未就绪')
@@ -70,7 +69,6 @@ const handleOpenFolder = async (path: string) => {
       return
     }
     await OpenFolder(path)
-    console.log('打开文件夹:', path)
   } catch (error) {
     console.error('打开文件夹失败:', error)
     ElMessage.error('打开文件夹失败: ' + error)

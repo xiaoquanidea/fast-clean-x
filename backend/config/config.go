@@ -57,8 +57,42 @@ func (m *Manager) Load() error {
 		return err
 	}
 
-	m.config = &config
+	// 合并默认配置，确保新字段有默认值
+	m.config = m.mergeWithDefaults(&config)
 	return nil
+}
+
+// mergeWithDefaults 将加载的配置与默认配置合并
+// 这样可以确保：
+// 1. 旧配置文件缺少的新字段会使用默认值
+// 2. 用户的数据（扫描路径、规则启用状态）会被保留
+// 3. 用户不需要手动删除配置文件
+func (m *Manager) mergeWithDefaults(loaded *models.Config) *models.Config {
+	defaults := models.DefaultConfig()
+
+	// 保留用户配置的路径和时间
+	defaults.ScanPaths = loaded.ScanPaths
+	defaults.IgnorePatterns = loaded.IgnorePatterns
+	defaults.LastScanTime = loaded.LastScanTime
+
+	// 如果旧配置有 GlobalPathExcludes，保留它；否则使用默认值
+	if len(loaded.GlobalPathExcludes) > 0 {
+		defaults.GlobalPathExcludes = loaded.GlobalPathExcludes
+	}
+
+	// 合并规则：保留用户的 enabled 状态，但使用默认的其他字段
+	ruleEnabledMap := make(map[string]bool)
+	for _, rule := range loaded.ScanRules {
+		ruleEnabledMap[rule.Name] = rule.Enabled
+	}
+
+	for i := range defaults.ScanRules {
+		if enabled, exists := ruleEnabledMap[defaults.ScanRules[i].Name]; exists {
+			defaults.ScanRules[i].Enabled = enabled
+		}
+	}
+
+	return defaults
 }
 
 // Save 保存配置到文件

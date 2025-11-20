@@ -5,6 +5,10 @@ export namespace models {
 	    description: string;
 	    targetDirs: string[];
 	    enabled: boolean;
+	    priority: number;
+	    projectMarkers: string[];
+	    requireMarkers: boolean;
+	    excludeFromGlobal: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new ScanRule(source);
@@ -16,11 +20,16 @@ export namespace models {
 	        this.description = source["description"];
 	        this.targetDirs = source["targetDirs"];
 	        this.enabled = source["enabled"];
+	        this.priority = source["priority"];
+	        this.projectMarkers = source["projectMarkers"];
+	        this.requireMarkers = source["requireMarkers"];
+	        this.excludeFromGlobal = source["excludeFromGlobal"];
 	    }
 	}
 	export class Config {
 	    scanPaths: string[];
 	    ignorePatterns: string[];
+	    globalPathExcludes: string[];
 	    scanRules: ScanRule[];
 	    // Go type: time
 	    lastScanTime: any;
@@ -33,6 +42,7 @@ export namespace models {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.scanPaths = source["scanPaths"];
 	        this.ignorePatterns = source["ignorePatterns"];
+	        this.globalPathExcludes = source["globalPathExcludes"];
 	        this.scanRules = this.convertValues(source["scanRules"], ScanRule);
 	        this.lastScanTime = this.convertValues(source["lastScanTime"], null);
 	    }

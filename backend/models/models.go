@@ -4,18 +4,23 @@ import "time"
 
 // ScanRule 扫描规则
 type ScanRule struct {
-	Name        string   `json:"name"`        // 规则名称，如 "Maven"
-	Description string   `json:"description"` // 规则描述
-	TargetDirs  []string `json:"targetDirs"`  // 要扫描的目录名，如 ["target"]
-	Enabled     bool     `json:"enabled"`     // 是否启用
+	Name              string   `json:"name"`              // 规则名称，如 "Maven"
+	Description       string   `json:"description"`       // 规则描述
+	TargetDirs        []string `json:"targetDirs"`        // 要扫描的目录名，如 ["target"]
+	Enabled           bool     `json:"enabled"`           // 是否启用
+	Priority          int      `json:"priority"`          // 优先级（数字越大优先级越高）
+	ProjectMarkers    []string `json:"projectMarkers"`    // 项目标识文件，用于确认项目类型
+	RequireMarkers    bool     `json:"requireMarkers"`    // 是否必须验证项目标识（减少误判）
+	ExcludeFromGlobal bool     `json:"excludeFromGlobal"` // 是否从全局排除中豁免（只豁免自己的目标目录）
 }
 
 // Config 应用配置
 type Config struct {
-	ScanPaths      []string   `json:"scanPaths"`      // 扫描路径列表
-	IgnorePatterns []string   `json:"ignorePatterns"` // 忽略的项目路径模式
-	ScanRules      []ScanRule `json:"scanRules"`      // 扫描规则
-	LastScanTime   time.Time  `json:"lastScanTime"`   // 上次扫描时间
+	ScanPaths          []string   `json:"scanPaths"`          // 扫描路径列表
+	IgnorePatterns     []string   `json:"ignorePatterns"`     // 忽略的项目路径模式
+	GlobalPathExcludes []string   `json:"globalPathExcludes"` // 全局路径排除（应用于所有规则）
+	ScanRules          []ScanRule `json:"scanRules"`          // 扫描规则
+	LastScanTime       time.Time  `json:"lastScanTime"`       // 上次扫描时间
 }
 
 // ScanItem 扫描到的单个项目
@@ -63,70 +68,95 @@ type CleanProgress struct {
 func DefaultScanRules() []ScanRule {
 	return []ScanRule{
 		{
-			Name:        "Maven",
-			Description: "Java Maven 构建目录",
-			TargetDirs:  []string{"target"},
-			Enabled:     true,
+			Name:              "Node.js",
+			Description:       "Node.js 依赖和构建目录",
+			TargetDirs:        []string{"node_modules", "dist", "build", ".next", ".nuxt", "out", ".output", ".vite", ".turbo", ".cache", ".parcel-cache", "coverage", ".nyc_output"},
+			Enabled:           true,
+			Priority:          100,
+			ProjectMarkers:    []string{"package.json"},
+			RequireMarkers:    true,
+			ExcludeFromGlobal: true,
 		},
 		{
-			Name:        "Gradle",
-			Description: "Java Gradle 构建目录",
-			TargetDirs:  []string{"build", ".gradle"},
-			Enabled:     true,
+			Name:              "Python",
+			Description:       "Python 缓存和虚拟环境",
+			TargetDirs:        []string{"__pycache__", ".venv", "venv", ".pytest_cache", ".mypy_cache"},
+			Enabled:           true,
+			Priority:          90,
+			ProjectMarkers:    []string{"requirements.txt", "setup.py", "pyproject.toml", "Pipfile"},
+			RequireMarkers:    false,
+			ExcludeFromGlobal: true,
 		},
 		{
-			Name:        "Java IDE",
-			Description: "Java IDE 输出目录",
-			TargetDirs:  []string{"out"},
-			Enabled:     true,
+			Name:              "Maven",
+			Description:       "Java Maven 构建目录",
+			TargetDirs:        []string{"target"},
+			Enabled:           true,
+			Priority:          80,
+			ProjectMarkers:    []string{"pom.xml"},
+			RequireMarkers:    true,
+			ExcludeFromGlobal: false,
 		},
 		{
-			Name:        "Node.js",
-			Description: "Node.js 依赖和构建目录",
-			TargetDirs: []string{
-				"node_modules",  // 依赖目录
-				"dist",          // 通用构建输出
-				"build",         // Create React App 等
-				".next",         // Next.js
-				".nuxt",         // Nuxt.js
-				"out",           // Next.js 静态导出
-				".output",       // Nuxt 3
-				".vite",         // Vite 缓存
-				".turbo",        // Turborepo 缓存
-				".cache",        // Gatsby, Parcel 等
-				".parcel-cache", // Parcel
-				"coverage",      // 测试覆盖率
-				".nyc_output",   // NYC 覆盖率
-			},
-			Enabled: true,
+			Name:              "Gradle",
+			Description:       "Java Gradle 构建目录",
+			TargetDirs:        []string{"build", ".gradle"},
+			Enabled:           true,
+			Priority:          80,
+			ProjectMarkers:    []string{"build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts"},
+			RequireMarkers:    true,
+			ExcludeFromGlobal: false,
 		},
 		{
-			Name:        "Python",
-			Description: "Python 缓存和虚拟环境",
-			TargetDirs:  []string{"__pycache__", ".venv", "venv", ".pytest_cache", ".mypy_cache"},
-			Enabled:     true,
+			Name:              "Rust",
+			Description:       "Rust 构建目录",
+			TargetDirs:        []string{"target"},
+			Enabled:           true,
+			Priority:          80,
+			ProjectMarkers:    []string{"Cargo.toml"},
+			RequireMarkers:    true,
+			ExcludeFromGlobal: false,
 		},
 		{
-			Name:        "Rust",
-			Description: "Rust 构建目录",
-			TargetDirs:  []string{"target"},
-			Enabled:     true,
+			Name:              "Go",
+			Description:       "Go vendor 目录",
+			TargetDirs:        []string{"vendor"},
+			Enabled:           false,
+			Priority:          70,
+			ProjectMarkers:    []string{"go.mod"},
+			RequireMarkers:    true,
+			ExcludeFromGlobal: true,
 		},
 		{
-			Name:        "Go",
-			Description: "Go vendor 目录",
-			TargetDirs:  []string{"vendor"},
-			Enabled:     false, // 默认不启用
+			Name:              "Java IDE",
+			Description:       "Java IDE 输出目录",
+			TargetDirs:        []string{"out"},
+			Enabled:           true,
+			Priority:          60,
+			ProjectMarkers:    []string{".idea", "pom.xml", "build.gradle", "build.gradle.kts"},
+			RequireMarkers:    false,
+			ExcludeFromGlobal: false,
 		},
+	}
+}
+
+// DefaultGlobalPathExcludes 返回默认的全局路径排除列表
+func DefaultGlobalPathExcludes() []string {
+	return []string{
+		"node_modules", // Node.js 依赖目录
+		"vendor",       // Go/PHP 依赖目录
+		".venv",        // Python 虚拟环境
+		"venv",         // Python 虚拟环境
 	}
 }
 
 // DefaultConfig 返回默认配置
 func DefaultConfig() *Config {
 	return &Config{
-		ScanPaths:      []string{},
-		IgnorePatterns: []string{},
-		ScanRules:      DefaultScanRules(),
-		LastScanTime:   time.Time{},
+		ScanPaths:          []string{},
+		IgnorePatterns:     []string{},
+		GlobalPathExcludes: DefaultGlobalPathExcludes(),
+		ScanRules:          DefaultScanRules(),
+		LastScanTime:       time.Time{},
 	}
 }

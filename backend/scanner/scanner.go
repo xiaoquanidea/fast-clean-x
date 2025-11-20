@@ -12,23 +12,25 @@ import (
 
 // Scanner 扫描器
 type Scanner struct {
-	rules          []models.ScanRule
-	ignorePatterns []string
-	progressChan   chan models.ScanProgress
-	mu             sync.Mutex
-	ctx            context.Context
-	cancel         context.CancelFunc
+	rules              []models.ScanRule
+	ignorePatterns     []string
+	globalPathExcludes []string
+	progressChan       chan models.ScanProgress
+	mu                 sync.Mutex
+	ctx                context.Context
+	cancel             context.CancelFunc
 }
 
 // New 创建新的扫描器
-func New(rules []models.ScanRule, ignorePatterns []string) *Scanner {
+func New(rules []models.ScanRule, ignorePatterns []string, globalPathExcludes []string) *Scanner {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Scanner{
-		rules:          rules,
-		ignorePatterns: ignorePatterns,
-		progressChan:   make(chan models.ScanProgress, 100),
-		ctx:            ctx,
-		cancel:         cancel,
+		rules:              rules,
+		ignorePatterns:     ignorePatterns,
+		globalPathExcludes: globalPathExcludes,
+		progressChan:       make(chan models.ScanProgress, 100),
+		ctx:                ctx,
+		cancel:             cancel,
 	}
 }
 
@@ -89,7 +91,7 @@ func (s *Scanner) scanPath(rootPath string, itemsChan chan<- models.ScanItem) {
 			return nil
 		}
 
-		// 跳过系统目录和隐藏目录
+		// 跳过版本控制目录和系统目录
 		if utils.ShouldSkipDir(path) {
 			return filepath.SkipDir
 		}
@@ -101,20 +103,48 @@ func (s *Scanner) scanPath(rootPath string, itemsChan chan<- models.ScanItem) {
 
 		// 检查是否匹配扫描规则
 		dirName := filepath.Base(path)
+
+		// 找到所有匹配的规则
+		var matchedRules []models.ScanRule
 		for _, rule := range s.rules {
+			if !rule.Enabled {
+				continue
+			}
+
 			for _, targetDir := range rule.TargetDirs {
 				if dirName == targetDir {
-					// 找到匹配的目录
-					item := s.createScanItem(path, rule.Name)
-					if item != nil {
-						itemsChan <- *item
-
-						// 发送进度更新
-						s.sendProgress(path)
+					// 检查全局排除规则（智能上下文检测）
+					if s.shouldExcludeByPath(path, rule) {
+						continue
 					}
-					return filepath.SkipDir
+
+					// 如果规则要求验证项目标识，检查是否能找到
+					if rule.RequireMarkers && len(rule.ProjectMarkers) > 0 {
+						if utils.FindNearestMarker(path, rule.ProjectMarkers) == "" {
+							// 找不到项目标识，跳过此规则
+							continue
+						}
+					}
+
+					matchedRules = append(matchedRules, rule)
+					break
 				}
 			}
+		}
+
+		// 如果有多个规则匹配，选择优先级最高的
+		if len(matchedRules) > 0 {
+			bestRule := s.selectBestRule(path, matchedRules)
+
+			// 找到匹配的目录
+			item := s.createScanItem(path, bestRule.Name)
+			if item != nil {
+				itemsChan <- *item
+
+				// 发送进度更新
+				s.sendProgress(path)
+			}
+			return filepath.SkipDir
 		}
 
 		return nil
@@ -178,4 +208,77 @@ func (s *Scanner) Cancel() {
 func (s *Scanner) Close() {
 	s.cancel()
 	close(s.progressChan)
+}
+
+// shouldExcludeByPath 检查路径是否应该被排除
+func (s *Scanner) shouldExcludeByPath(path string, rule models.ScanRule) bool {
+	// 1. 检查全局排除
+	if !rule.ExcludeFromGlobal {
+		// 规则不豁免全局排除，检查所有全局排除项
+		for _, exclude := range s.globalPathExcludes {
+			if utils.Contains(path, exclude) {
+				return true
+			}
+		}
+	} else {
+		// 规则豁免全局排除，但只豁免自己的目标目录
+		// 仍然检查其他全局排除项
+		for _, exclude := range s.globalPathExcludes {
+			// 检查这个排除项是否是当前规则的目标目录
+			isOwnTarget := false
+			for _, targetDir := range rule.TargetDirs {
+				if exclude == targetDir {
+					isOwnTarget = true
+					break
+				}
+			}
+
+			// 如果不是自己的目标目录，仍然应用全局排除
+			if !isOwnTarget && utils.Contains(path, exclude) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// selectBestRule 从多个匹配的规则中选择最佳的一个
+func (s *Scanner) selectBestRule(path string, rules []models.ScanRule) models.ScanRule {
+	if len(rules) == 1 {
+		return rules[0]
+	}
+
+	// 优先选择有项目标识验证的规则（更准确）
+	// 然后再按优先级选择
+	var verifiedRules []models.ScanRule
+	var unverifiedRules []models.ScanRule
+
+	for _, rule := range rules {
+		if rule.RequireMarkers && len(rule.ProjectMarkers) > 0 {
+			verifiedRules = append(verifiedRules, rule)
+		} else {
+			unverifiedRules = append(unverifiedRules, rule)
+		}
+	}
+
+	// 优先从验证过的规则中选择
+	if len(verifiedRules) > 0 {
+		bestRule := verifiedRules[0]
+		for _, rule := range verifiedRules[1:] {
+			if rule.Priority > bestRule.Priority {
+				bestRule = rule
+			}
+		}
+		return bestRule
+	}
+
+	// 如果没有验证过的规则，从未验证的规则中选择
+	bestRule := unverifiedRules[0]
+	for _, rule := range unverifiedRules[1:] {
+		if rule.Priority > bestRule.Priority {
+			bestRule = rule
+		}
+	}
+	return bestRule
 }

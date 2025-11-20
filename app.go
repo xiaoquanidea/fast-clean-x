@@ -46,14 +46,7 @@ func (a *App) UpdateConfig(cfg *models.Config) error {
 
 // AddScanPath 添加扫描路径
 func (a *App) AddScanPath(path string) error {
-	fmt.Printf("AddScanPath called with: %s\n", path)
-	err := a.configManager.AddScanPath(path)
-	if err != nil {
-		fmt.Printf("AddScanPath error: %v\n", err)
-	} else {
-		fmt.Printf("AddScanPath success\n")
-	}
-	return err
+	return a.configManager.AddScanPath(path)
 }
 
 // RemoveScanPath 移除扫描路径
@@ -73,14 +66,7 @@ func (a *App) RemoveIgnorePattern(pattern string) error {
 
 // UpdateScanRule 更新扫描规则
 func (a *App) UpdateScanRule(ruleName string, enabled bool) error {
-	fmt.Printf("UpdateScanRule called: %s = %v\n", ruleName, enabled)
-	err := a.configManager.UpdateScanRule(ruleName, enabled)
-	if err != nil {
-		fmt.Printf("UpdateScanRule error: %v\n", err)
-	} else {
-		fmt.Printf("UpdateScanRule success\n")
-	}
-	return err
+	return a.configManager.UpdateScanRule(ruleName, enabled)
 }
 
 // StartScan 开始扫描
@@ -91,6 +77,7 @@ func (a *App) StartScan() (*models.ScanResult, error) {
 	a.currentScanner = scanner.New(
 		a.configManager.GetEnabledRules(),
 		cfg.IgnorePatterns,
+		cfg.GlobalPathExcludes,
 	)
 
 	// 启动进度监听
@@ -162,18 +149,13 @@ func (a *App) CancelClean() {
 
 // SelectDirectory 选择目录
 func (a *App) SelectDirectory() (string, error) {
-	fmt.Println("SelectDirectory called")
-	path, err := wailsRuntime.OpenDirectoryDialog(a.ctx, wailsRuntime.OpenDialogOptions{
+	return wailsRuntime.OpenDirectoryDialog(a.ctx, wailsRuntime.OpenDialogOptions{
 		Title: "选择扫描目录",
 	})
-	fmt.Printf("SelectDirectory result: path=%s, err=%v\n", path, err)
-	return path, err
 }
 
 // OpenFolder 在文件管理器中打开文件夹
 func (a *App) OpenFolder(path string) error {
-	fmt.Printf("OpenFolder called with: %s\n", path)
-
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "darwin": // macOS
@@ -186,12 +168,5 @@ func (a *App) OpenFolder(path string) error {
 		return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
 	}
 
-	err := cmd.Start()
-	if err != nil {
-		fmt.Printf("OpenFolder error: %v\n", err)
-		return err
-	}
-
-	fmt.Println("OpenFolder success")
-	return nil
+	return cmd.Start()
 }

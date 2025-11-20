@@ -25,7 +25,6 @@ const loadConfig = async () => {
       return
     }
     config.value = await GetConfig()
-    console.log('配置已加载:', config.value)
   } catch (error) {
     console.error('加载配置失败:', error)
     // 只在绑定已加载的情况下显示错误消息
@@ -47,7 +46,6 @@ onMounted(async () => {
     SelectDirectory = module.SelectDirectory
     AddScanPath = module.AddScanPath
 
-    console.log('Wails 绑定已加载')
     await loadConfig()
   } catch (error: any) {
     console.error('加载 Wails 绑定失败:', error)
@@ -83,9 +81,7 @@ const handleScan = async () => {
 
 const handleAddPath = async () => {
   try {
-    console.log('开始选择目录...')
     const path = await SelectDirectory()
-    console.log('选择的路径:', path)
 
     if (path && path.trim() !== '') {
       await AddScanPath(path)
@@ -93,8 +89,6 @@ const handleAddPath = async () => {
       await loadConfig()
       // 清空旧的扫描结果
       scanResults.value = null
-    } else {
-      console.log('未选择路径或路径为空')
     }
   } catch (error) {
     console.error('添加路径失败:', error)
