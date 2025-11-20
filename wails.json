@@ -1,0 +1,20 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "Fast Clean X",
+  "outputfilename": "fast-clean-x",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "hutiquan",
+    "email": "xiaoquanidea@163.com"
+  },
+  "info": {
+    "companyName": "Fast Clean X",
+    "productName": "Fast Clean X",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2025 hutiquan",
+    "comments": "快速清理项目构建文件的桌面应用"
+  }
+}
